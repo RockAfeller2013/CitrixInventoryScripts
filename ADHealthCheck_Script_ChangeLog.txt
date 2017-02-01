@@ -1,0 +1,26 @@
+#originally written by Jeff Wouters | http://www.jeffwouters.nl | @JeffWouters
+## Now maintained by webster@carlwebster.com
+#@carlwebster on Twitter
+#http://www.CarlWebster.com
+# Version 1 released July 2014
+
+#Version 2.0 9-May-2016
+#	Added alias for AddDateTime of ADT
+#	Added alias for CompanyName of CN
+#	Added -Dev parameter to create a text file of script errors
+#	Added more script information to the console output when script starts
+#	Added -ScriptInfo (SI) parameter to create a text file of script information
+#	Added support for emailing output report
+#	Added support for output folder
+#	Added word 2016 support
+#	Fixed numerous issues discovered with the latest update to PowerShell V5
+#	Fixed several incorrect variable names that kept PDFs from saving in Windows 10 and Office 2013
+#	General code cleanup by Michael B. Smith
+#	Output to CSV rewritten by Michael B. Smith
+#	Removed the 10 second pauses waiting for Word to save and close
+#	Removed unused parameters Text, HTML, ComputerName, Hardware
+#	Significant Active Directory changes have been implemented by Michael B. Smith
+#	Updated help text
+
+# Version 1.0 released to the community on July 14, 2014
+# http://jeffwouters.nl/index.php/2014/07/an-active-directory-health-check-powershell-script-v1-0/
