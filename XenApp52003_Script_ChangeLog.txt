@@ -1,0 +1,188 @@
+#Original Script created 8/17/2010 by Michael Bogobowicz, Citrix Systems.
+
+#To contact, please message @mikebogo on Twitter
+#The original script was designed to be run on a XenApp 6 server
+#Modifications by Carl Webster, CTP and independent consultant
+#webster@carlwebster.com
+
+#@carlwebster on Twitter
+#http://www.CarlWebster.com
+#modified from original script for XenApp 5
+#originally released to the Citrix community on October 3, 2011
+
+#Version 4.2 4-Aug-2014 FINAL VERSION - this script is now archived
+
+#	Fix the SWExclusions function to work if SoftwareExclusions.txt file contains only one item
+
+#	Cleanup the script's parameters section
+
+#	Cleanup Word table code for the first row and background color
+
+#	Cleanup retrieving services and service startup type with Iain Brighton's optimization
+
+#	Add more write-verbose statements and error handling to the Configuration Logging report section
+
+#	Added beginning and ending dates for retrieving Configuration Logging data
+
+#	Add Section parameter
+
+#	Valid Section options are:
+
+#		Admins (Administrators)
+
+#		Apps (Applications)
+
+#		ConfigLog (Configuration Logging)
+
+#		Farm
+
+#		LoadEvals (Load Evaluators)
+
+#		Policies
+
+#		Printers (Print Drivers and Print Driver Mappings)
+
+#		Servers
+
+#		Zones
+
+#		All
+#Version 4.14 4-Jun-2014
+
+#	Added an AddDateTime parameter
+
+
+#Version 4.13 20-May-2014
+#	Bring up-to-date with the changes made to the Active Directory and DHCP documentation scripts
+
+#		Remove all hard-coded values for Word and Table functions
+
+#		Don't abort script if CompanyName is not provided
+
+#		Horizontal table header row flows across page Breaks
+#		Format most Warning and Error messages to make them more readable
+#		Test for existence of "word" variable before removal
+#		Fix GetComputerWMIInfo to work in a multi-forest Active Directory environment
+
+#	Script has been split into two separate scripts.  One for Server 2003 and one for Server 2008.
+#	Version 4.2 will be the last version of the XenApp 5 for Windows Server 2003 script
+
+#Version 4.12 12-Apr-2014
+#	Add updated WriteWordLine function
+
+#	Change Command Line and Working Directory for Applications to a different size font and make them bold
+#	Citrix Services table, added a Startup Type column and color stopped services in red only if Startup Type is Auto 
+
+#Version 4.11 1-Apr-2014
+
+#	Save current settings for Spell Check and Grammar Check before disabling them
+#	Before closing Word, put Spelling and Grammar settings back to original
+
+#Version 4.1 Updates and fixes 20-Jan-2014
+#	Added additional error checking when retrieving Network Interface WMI data
+#	Added beginning and ending dates for retrieving Configuration Logging data
+#	Added help text to show the script produces a Word or PDF document
+#	Added help text to show the Summary option cannot be used with either the Software or Hardware options
+#	Added Parameter sets to support the Summary option
+
+#	Added Summary report option
+
+#	Changed Configuration Logging section to a Word table
+#	Changed to using $PSCulture for Word culture setting
+
+#	Don't abort script if Cover Page is not found
+#	For applications, move list of servers to table
+
+#	For the software inventory add DisplayVersion to the table
+
+#	Removed the extra blank line between Administrators
+
+#Word version 4 of script based on version 2.03 of XA5 script (there was no version 3)
+#Updated 12-Nov-2013
+#	Added back in the French sections that somehow got removed
+
+#Version 4 script release
+#	Add Appendix A for Session Sharing information
+#	Add Appendix B for Server Major Items
+
+#	Add elapsed time to end of script
+#	Add extra testing for applications, policies, print drivers and print driver mappings to report if none exist instead of issuing a warning
+#	Add get-date to all write-verbose statements
+#	Add more Write-Verbose statements
+
+#	Add option to SaveAs PDF
+#	Add setting Default tab stops at 36 points (1/2 inch in the USA)
+#	Add Software Inventory
+#	Add Summary Page
+#	Add support for non-English versions of Microsoft Word
+#	Add WMI hardware information for Computer System, Disks, Processor and Network Interface Cards
+#	Change $Global: variables to regular variables
+#	Change all instances of using $Word.Quit() to also use proper garbage collection
+#	Change all occurrences of Access Session Conditions to Tables 
+#	Change Default Cover Page to Sideline since Motion is not in German Word
+#	Change Get-RegistryValue function to handle $null return value
+#	Change Health Monitoring & Recovery tests to Tables
+#	Change Print Drivers and Print Driver Mappings to Tables
+#	Change wording when script aborts from a blank company name
+#	Abort script if Farm information cannot be retrieved
+#	Align Tables on Tab stop boundaries
+
+#	Consolidated all the code to properly abort the script into a function AbortScript
+#	Force the -verbose common parameter to be $True if running PoSH V3 or later
+#	General code cleanup
+#	If Citrix XenApp 5 PowerShell CTP V4 is installed, add Global Zone Data to Zones section
+#	If cover page selected does not exist, abort script
+#	If running Word 2007 and the Save As PDF option is selected then verify the Save As PDF add-in is installed.  Abort script if not installed.
+#	In the Server section, change Published Application to a Table
+#	Only process WMI hardware information if the server is online
+#	Strongly type all possible variables
+#	Verify Get-HotFix cmdlet worked.  If not, write error & suggestion to document
+#	Verify Word object is created.  If not, write error & suggestion to document and abort script
+
+#Version 2
+#updated January 26, 2013
+#	Add more write-verbose statements
+
+#	Added in the missing Load evaluator settings for Load Throttling and Server User Load 
+
+#	Created a table for Citrix installed hotfixes
+
+#	Created a table for Microsoft hotfixes
+
+#	Disable Spell and Grammer Check to resolve issue and improve performance (from Pat Coughlin)
+
+#	Fixed issues found by running in set-strictmode -version 2.0
+
+#	Fixed typos
+
+#	Move table of Citrix services to align with text above table
+
+#	output to Microsoft Word 2007 and 2010
+
+#	Test for CompanyName in two different registry locations
+
+#	Test if template DOTX file loads properly.  If not, skip Cover Page and Table of Contents
+
+#	Test XenApp server for availability before getting services and hotfixes
+
+
+#Updated March 14, 2013
+#	?{?_.SessionId -eq $SessionID} should have been ?{$_.SessionId -eq $SessionID} in the CheckWordPrereq function
+
+#Updated April 20, 2013
+
+#	Fixed a compatibility issue with the way the Word file was saved and Set-StrictMode -Version 2
+#	Fixed five typos dealing with Session Printer policy settings
+
+
+#Updated June 7, 2013
+
+#	Added a few more Write-Verbose statements
+#	Citrix services that are Stopped will now show in a Red cell with bold, black text
+
+#	Fixed the content of and the detail contained in the Table of Contents
+
+#Version 1
+#originally released to the Citrix community on October 3, 2011
+#updated October 9, 2011.  
+#	Added CPU Utilization Management, Memory Optimization and Health Monitoring & Recovery

@@ -1,0 +1,54 @@
+#webster@carlwebster.com
+#@carlwebster on Twitter
+#http://www.CarlWebster.com
+# Created on April 1, 2013, 2013
+
+#Version 1.16 22-Oct-2016
+#	More refinement of HTML output
+
+#Version 1.15 19-Oct-2016
+#	Fixed formatting issues with HTML headings output
+
+#Version 1.14 9-Feb-2016
+#	Added specifying an optional output folder
+#	Added the option to email the output file
+#	Fixed several spacing and typo errors
+
+# Version 1.13 5-Oct-2015
+#	Added support for Word 2016
+
+# Version 1.12 5-Aug-2015
+#	Changed Assignments table from 11 point to 9 point font
+#	Change Administrators table from 11 point to 9 point font
+#	Fixed wrong variable name for "No machines in Delivery Group" message
+#	Fixed "Processing machine" message when machine is in an unknown power state or unregistered
+#	Updated ReadMe file with instructions on manually instally the necessary PowerShell snapins
+
+# Version 1.11 8-Jul-2015
+#	Add in updated hardware inventory code
+#	Updated help text
+
+# Version 1.1
+# Add three new parameters
+#	-NoPolicies
+#	-NoAdPolicies
+#	-Hardware
+#	-DeliveryGroupUtilization
+# Add Aliases for the following parameters
+#	Policies (Pol)
+# 	NoPolicies (NP)
+#	NoADPolicies (NoAD)
+#	Hosting (Host)
+#	Hardware (HW)
+#	DeliveryGroupUtilization (DGU)
+#	AddDateTime (ADT)
+# Update the help text with the above and examples.
+# NoPolicies excludes all policy information from the output document.
+# NoAdPolicies excludes only Citrix based AD policy information from the output document.
+# If both Policies and NoPolicies are used, preference is given to NoPolicies.
+# Hardware gives hardware information on each Controller.
+# Cleanup verbose screen output by redirecting some output to Null.
+# End the script if the Policies parameter is used but the citrix.grouppolicy.commands module cannot be loaded.
+# Add a Delivery Group Utilization chart.
+
+# Version 1.0 released to the community on March 2, 2015

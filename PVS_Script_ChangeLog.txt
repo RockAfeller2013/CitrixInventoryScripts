@@ -1,0 +1,228 @@
+#Carl Webster, CTP and Sr. Solutions Architect at Choice Solutions
+#webster@carlwebster.com
+#@carlwebster on Twitter
+#http://www.CarlWebster.com
+#This script written for "Benji", March 19, 2012
+#Thanks to Michael B. Smith, Joe Shonk and Stephane Thirion
+#for testing and fine-tuning tips 
+
+#Version 5.08 22-Oct-2016
+#	More refinement of HTML output
+
+#Version 5.07 19-Oct-2016
+#	Fixed formatting issues with HTML headings output
+
+#Version 5.06 14-Sep-2016
+#	Add support for PVS 7.11
+#	Change version checking to support a four character version number
+#	Add to Farm properties, Customer Experience Improvement Program
+#	Add to Farm properties, CIS Username
+#	Add to Site properties, Seconds between vDisk inventory scans
+#	Add to Server properties, Problem Report Date, Summary and Status
+#	Add, Fix, Remove or Update Audit Trail items:
+#		2009 Run WithReturnBoot
+#		2021 Run WithReturnDisplayMessage
+#		2033 Run WithReturnReboot
+#		2042 Run WithReturnShutdown
+#		2055 Run ExportDisk
+#		2056 Run AssignDisk
+#		2057 Run RemoveDisk
+#		2058 Run DiskUpdateStart
+#		2059 Run DiskUpdateCancel
+#		2060 Run SetOverrideVersion
+#		2061 Run CancelTask
+#		2062 Run ClearTask
+#		2063 Run ForceInventory
+#		2064 Run UpdateBDM
+#		2065 Run StartDeviceDiskTempVersionMode
+#		2066 Run StopDeviceDiskTempVersionMode
+#		Remove previous obsolete audit values 7013 through 7033
+#		Add the following new audit values 7013 through 7021
+#		7013 Set ListDiskLocatorCustomProperty
+#		7014 Set ListDiskLocatorCustomPropertyDelete
+#		7015 Set ListDiskLocatorCustomPropertyAdd
+#		7016 Set ListServerCustomProperty
+#		7017 Set ListServerCustomPropertyDelete
+#		7018 Set ListServerCustomPropertyAdd
+#		7019 Set ListUserGroupCustomProperty
+#		7020 Set ListUserGroupCustomPropertyDelete
+#		7021 Set ListUserGroupCustomPropertyAdd	
+#	Add write-cache type 6, Device RAM Disk, only because it is in the cmdlet's help text
+#	Fix issues with invalid variable names found by using the -Dev parameter
+
+#Version 5.05 12-Sep-2016
+#	Add ShowScriptOptions when using TEXT or HTML
+#	Add in support for the -Dev and -ScriptInfo parameters
+#	Fix several issues with HTML and Text output
+#	Some general code cleanup of unused variables
+#	Add missing function validObject
+
+#Version 5.04 12-Sep-2016
+#	If remoting is used (-AdminAddress), check if the script is being run elevated. If not,
+#		show the script needs elevation and end the script
+#	Added Break statements to most of the Switch statements
+#	Added checking the NIC's "Allow the computer to turn off this device to save power" setting
+
+#Version 5.03 17-Aug-2016
+#	Fixed a few Text and HTML output issues in the Hardware region
+
+#Version 5.02 12-Apr-2016
+#	Updated help text to show the console and snap-in installation
+
+#Version 5.01 8-Feb-2016
+#	Added specifying an optional output folder
+#	Added the option to email the output file
+#	Fixed several spacing and typo errors
+#	Corrected help text
+
+#Version 5.00 released 28-Dec-2015
+#	Support for PVS 7.7 and its new real PowerShell implementation
+#	5.00 will NOT work on any previous version of PVS
+
+#Version 4.26 12-Sep-2016
+#	Added an alias AA for AdminAddress to match the other scripts that use AdminAddress
+#	If remoting is used (-AdminAddress), check if the script is being run elevated. If not,
+#		show the script needs elevation and end the script
+#	Added Break statements to most of the Switch statements
+#	Added checking the NIC's "Allow the computer to turn off this device to save power" setting
+#	Remove all references to TEXT and HTML output as those are in the 5.xx script
+
+#Version 4.25 8-Feb-2016
+#	Added specifying an optional output folder
+#	Added the option to email the output file
+#	Fixed several spacing and typo errors
+
+#Version 4.24 4-Dec-2015
+#	Added RAM usage for Cache to Device RAM with Overflow to Disk option
+
+#Version 4.23 5-Oct-2015
+#	Added support for Word 2016
+
+#Version 4.22 11-Aug-2015
+#	Fixed processing of the Options tab for ServerBootstrap files
+
+#Version 4.21 8-Jul-2015
+#	Add writeCacheType 9 (Cache to Device RAM with overflow to hard disk) for PVS 7.x
+#	Remove writeCacheType 3 and 5 from PVS 6 and 7
+#	Updated help text
+#	Updated hardware inventory code
+
+#Version 4.2 6-Aug-2014
+#	Cleanup the script's parameters section
+#	Code cleanup and standardization with the master template script
+#	Requires PowerShell V3 or later
+#	Removed support for Word 2007
+#	Word 2007 references in help text removed
+#	Cover page parameter now states only Word 2010 and 2013 are supported
+#	Most Word 2007 references in script removed:
+#		Function ValidateCoverPage
+#		Function SetupWord
+#		Function SaveandCloseDocumentandShutdownWord
+#	Function CheckWord2007SaveAsPDFInstalled removed
+#	If Word 2007 is detected, an error message is now given and the script is aborted
+#	Cleanup Word table code for the first row and background color
+#	Add Iain Brighton's Word table functions
+#	Move Appendix A and B tables to new table function
+#	Move hardware info to new table functions
+#	Move audit trail info to new table functions
+#	Add parameters for MSWord, Text and HTML for future updates
+
+#Version 4.16 4-Jun-2014
+#	Added an AddDateTime parameter
+
+#Version 4.15 20-May-2014
+#	Bring up-to-date with the changes made to the Active Directory and DHCP documentation scripts
+#		Remove all hard-coded values for Word and Table functions
+#		Don't abort script if CompanyName is not provided
+#		Horizontal table header row flows across page Breaks
+#		Format most Warning and Error messages to make them more readable
+#		Test for existence of "word" variable before removal
+#		Fix GetComputerWMIInfo to work in a multi-forest Active Directory environment
+#	Next script update will require PowerShell Version 3.0 or higher
+
+#Version 4.14 1-Apr-2014
+#	Save current settings for Spell Check and Grammar Check before disabling them
+#	Before closing Word, put Spelling and Grammar settings back to original
+
+#Version 4.13 3-Feb-2014
+#	From the vDisk Versions dialog, added the "Boot production devices from version"
+#	Added "Current booting version" after the version # for the vDisk Version used for booting
+
+#Version 4.12 2-Feb-2014
+#	Added vDisk Versions
+#	Added Audit Trail report as a table to the Site section
+#	Added StartDate and EndDate parameters to support the Audit Trail
+
+#Version 4.11 28-Jan-2014
+#	Fixed the formatting of three lines
+#	Test to see if server is online before process bootstrap files
+
+#Version 4.1 Updates and fixes 20-Jan-2014:
+#	Added additional error checking when retrieving Network Interface WMI data
+#	Added help text to show the script produces a Word or PDF document
+#	Changed to using $PSCulture for Word culture setting
+#	Don't abort script if Cover Page is not found
+
+#Version 4
+
+#Updated 12-Nov-2013
+#	Added back in the French sections that somehow got removed
+
+#Version 4 script release
+#	Abort script if Farm information cannot be retrieved
+#	Add Appendix A and B for Server Advanced Settings information
+#	Add detecting the running Operating System to handle Word 2007 oddness with Server 2003/2008 vs Windows 7 vs Server 2008 R2
+#	Add elapsed time to end of script
+#	Add get-date to all write-verbose statements
+#	Add more Write-Verbose statements
+#	Add option to SaveAs PDF
+#	Add setting Default tab stops at 36 points (1/2 inch in the USA)
+#	Add support for non-English versions of Microsoft Word
+#	Add WMI hardware information for Computer System, Disks, Processor and Network Interface Cards
+#	Align Tables on Tab stop boundaries
+#	Change $Global: variables to regular variables
+#	Change all instances of using $Word.Quit() to also use proper garbage collection
+#	Change Default Cover Page to Sideline since Motion is not in German Word
+#	Change Get-RegistryValue function to handle $null return value
+#	Change wording when script aborts from a blank company name
+#	Consolidated all the code to properly abort the script into a function AbortScript
+#	Fix issues with Word 2007 SaveAs under (Server 2008 and Windows 7) and Server 2008 R2
+#	Force the -verbose common parameter to be $True if running PoSH V3 or later
+#	General code cleanup
+#	If cover page selected does not exist, abort script
+#	If running Word 2007 and the Save As PDF option is selected then verify the Save As PDF add-in is installed.  Abort script if not installed.
+#	Only process WMI hardware information if the server is online
+#	Strongly type all possible variables
+#	Verify the SOAP and Stream services are started on the server processing the script
+#	Verify Word object is created.  If not, write error and suggestion to document and abort script
+#	Word version 4 of script based on version 3 of PVS script
+
+#Version 3
+#Version 3 created July 18, 2013
+#	Added setting default tab stops at 36 points (1/2 inch in the USA)
+#	Added support for PVS7
+#	Many typos corrected
+#	Realigned a lot of items so the ":"s line up better
+#	Several logic errors fixed
+
+#Version 2
+#Updated Janury 29, 2013 to create a Word 2007/2010/2013 document
+#	Add more write-verbose statements
+#	Disable Spell and Grammer Check to resolve issue and improve performance (from Pat Coughlin)
+#	Fixed issues found by running in set-strictmode -version 2.0
+#	Fixed numerous bugs and logic issues
+#	Fixed typos
+#	Test for CompanyName in two different registry locations
+#	Test if template DOTX file loads properly.  If not, skip Cover Page and Table of Contents
+
+#Updated March 14, 2013
+#	?{?_.SessionId -eq $SessionID} should have been ?{$_.SessionId -eq $SessionID} in the CheckWordPrereq function
+#Updated March 16, 2013
+#	Fixed hard coded "6.5" in report subject.  Copy and Paste error from the XenApp 6.5 script.
+#Updated April 19, 2013
+#	Fixed a compatibility issue with the way the Word file was saved and Set-StrictMode -Version 2
+#	Fixed the content of and the detail contained in the Table of Contents
+#Updated June 7, 2013
+#	Added for PVS 6.x processing the vDisk Load Balancing menu (bug found by Corey Tracey)
+#Updated June 17, 2013
+#	Added three command line parameters for use with -AdminAddress (User, Domain, Password) at the request of Corey Tracey

@@ -1,0 +1,241 @@
+#Original Script created 8/17/2010 by Michael Bogobowicz, Citrix Systems.
+#To contact, please message @mikebogo on Twitter
+#This script is designed to be run on a XenApp 6 server
+
+#Modifications by Carl Webster, CTP and independent consultant
+#webster@carlwebster.com
+#@carlwebster on Twitter
+#http://www.CarlWebster.com
+#originally released to the Citrix community on September 30, 2011
+
+#Version 4.24 5-Oct-2015
+#	Added support for Word 2016
+
+#Version 4.23 17-Aug-2015
+#	Updated for CTX129229 that was updated August 2015
+
+#Version 4.22 25-Jul-2015
+#	Updated for CTX129229 dated 1-Apr-2015
+#	Add checking for KB3014783 for Server 2008 R2 w/o SP1
+#	Added most current hardware inventory code
+#	Cleaned up extraneous console output
+
+#Version 4.21 18-Dec-2014
+#	Updated for CTX129229 dated 18-Dec-2014
+#	Fix wrong variable name for saving as PDF for Word 2013
+
+#Version 4.2 11-Aug-2014
+#	Fix the SWExclusions function to work if SoftwareExclusions.txt file contains only one item
+#	Cleanup the script's parameters section
+#	Code cleanup and standardization with the master template script
+#	Requires PowerShell V3 or later
+#	Removed support for Word 2007
+#	Word 2007 references in help text removed
+#	Cover page parameter now states only Word 2010 and 2013 are supported
+#	Most Word 2007 references in script removed:
+#		Function ValidateCoverPage
+#		Function SetupWord
+#		Function SaveandCloseDocumentandShutdownWord
+#	Function CheckWord2007SaveAsPDFInstalled removed
+#	If Word 2007 is detected, an error message is now given and the script is aborted
+#	Cleanup Word table code for the first row and background color
+#	Cleanup retrieving services and service startup type with Iain Brighton's optimization
+#	Add Iain Brighton's Word table functions
+#	Move Citrix Services table to new table functions
+#	Move Citrix and Microsoft hotfix tables to new table functions
+#	Move hardware info to new table functions
+#	Add more write statements and error handling to the Configuration Logging report section
+#	Add parameters for MSWord, Text and HTML for future updates
+#	Add Section parameter
+#	Valid Section options are:
+#		Admins (Administrators)
+#		Apps (Applications)
+#		ConfigLog (Configuration Logging)
+#		LBPolicies (Load Balancing Policies)
+#		LoadEvals (Load Evaluators)
+#		Policies
+#		Servers
+#		WGs (Worker Groups)
+#		Zones
+#		All
+
+#Version 4.14 4-Jun-2014
+#	Added an AddDateTime parameter
+
+#Version 4.13 20-May-2014
+#	Bring up-to-date with the changes made to the Active Directory and DHCP documentation scripts
+#		Remove all hard-coded values for Word and Table functions
+#		Don't abort script if CompanyName is not provided
+#		Horizontal table header row flows across page Breaks
+#		Format most Warning and Error messages to make them more readable
+#		Test for existence of "word" variable before removal
+#		Fix GetComputerWMIInfo to work in a multi-forest Active Directory environment
+#	Next script update will require PowerShell Version 3.0 or higher
+
+#Version 4.12 12-Apr-2014
+#	Fix divide by 0 error when Worker Group by Security Group or OU and the name is longer than 60 characters
+#	Fix the verbose messages when processing Worker Groups to display Server, Security Group or OU
+#	For Worker Groups based on multiple OUs, sort the OU list by length of distinguished name 
+#	Remove hard-coded value in the BuildTableForServerOrWG function
+#	Add updated WriteWordLine function
+#	Change Command Line and Working Directory for Applications to a different size font and make them bold
+#	Citrix Services table, added a Startup Type column and color stopped services in red only if Startup Type is Auto 
+#	For Active Directory based Citrix policies, added the AD policy name to clarify which Citrix policies are contained in what AD policies
+
+#Version 4.11 1-Apr-2014
+#	Save current settings for Spell Check and Grammar Check before disabling them
+#	Before closing Word, put Spelling and Grammar settings back to original
+
+#Version 4.1 Updates and fixes 20-Jan-2014:
+#	Added additional error checking when retrieving Network Interface WMI data
+#	Added additional Write-Verbose statements for the AD policy function
+#	Added beginning and ending dates for retrieving Configuration Logging data
+#	Added help text to show the script produces a Word or PDF document
+#	Added help text to show the Summary option cannot be used with either the Software or Hardware options
+#	Added Parameter sets to support the Summary option
+#	Added Summary report option
+#	Changed Configuration Logging section to a Word table
+#	Changed to using $PSCulture for Word culture setting
+#	Don't abort script if Cover Page is not found
+#	Fixed bug where the AD Policy function did not work if there was only one AD policy
+#	For applications, move list of servers and worker groups to table
+#	For the software inventory add DisplayVersion to the table
+#	For Worker Groups, move list of servers and applications to table
+#	In Appendix B, if the License Server cell is empty replace with the text "Set by policy"
+#	Only include Valid hotfixes in the table of installed Citrix hotfixes
+#	Removed the Valid column for the Citrix hotfix table
+#	Removed the extra blank line between Administrators
+#	Updated for CTX129229 that was updated on 31-Dec-2013
+
+#Word version 4 of script based on version 3.05 of XA6 script
+
+#Updated 1-Jan-2014
+#	Updated for CTX129229 that was updated on 31-Dec-2013
+
+#Updated 30-Dec-2013
+#	Do not sort the array of Citrix AD policies before returning the array from the function.  Causes the array to not work when there is only one AD policy.
+
+#Updated 5-Dec-2013
+#	Fixed bug where the functions in Citrix.GroupPolicy.Command.psm1 were not found
+#	Fixed bug where XA65ConfigLog.udl was not found even if it existed
+#	Initialize switch parameters as $False
+
+#Updated 12-Nov-2013
+#	Added back in the French sections that somehow got removed
+
+#Updated 07-Nov-2013
+#	Changed link to Citrix.GroupPolicy.Commands.psm module to my Dropbox
+#	Changed the GetCtxGPOsInAD function to work in a Windows Workgroup environment
+#	Removed an extra test to see if the server being processed was online and reachable
+#	Removed the .LINK section from the help text
+#	The Hotfix array for Citrix hotfixes was not initialized correctly causing all installed Citrix hotfixes to show as not installed.
+
+#Version 4 release
+#	Abort script if Farm information cannot be retrieved
+#	Add ability to process AD based Citrix policies
+#	Add Appendix A for Session Sharing information
+#	Add Appendix B for Server Major Items
+#	Add descriptions for Citrix Policy filter type
+#	Add detecting the running Operating System to handle Word 2007 oddness with Server 2003/2008 vs Windows 7 vs Server 2008 R2
+#	Add elapsed time to end of script
+#	Add extra testing for applications, load balancing policies and worker groups to report if none exist instead of issuing a warning
+#	Add get-date to all write-verbose statements
+#	Add missing "None" option to ICA\Graphics\Image compression\Progressive compression level
+#	Add more Write-Verbose statements
+#	Add option to SaveAs PDF
+#	Add setting Default tab stops at 36 points (1/2 inch in the USA)
+#	Add Software Inventory
+#	Add Summary Page
+#	Add support for non-English versions of Microsoft Word
+#	Add WMI hardware information for Computer System, Disks, Processor and Network Interface Cards
+#	Align Tables on Tab stop boundaries
+#	Change all instances of using $Word.Quit() to also use proper garbage collection
+#	Change all occurrences of Access Session Conditions to Tables 
+#	Change Default Cover Page to Sideline since Motion is not in German Word
+#	Change Get-RegistryValue function to handle $null return value
+#	Change most $Global: variables to regular variables
+#	Change the test for the existence of XA6ConfigLog.udl from using .\ to $pwd.path
+#	Change wording of not being able to load the Citrix.GroupPolicy.Commands.psm1 module
+#	Change wording when script aborts from a blank company name
+#	Consolidated all the code to properly abort the script into a function AbortScript
+#	Fix ICA\Printing\Wait for printers to be created (desktop) policy setting
+#	Fix issues with Word 2007 SaveAs under (Server 2008 and Windows 7) and Server 2008 R2
+#	Fix logic error when comparing Citrix installed hotfixes to the recommended list
+#	Fix output from ICA\Printing\Drivers\Printer driver mapping and compatibility
+#	Fix output of ICA\Printing\Session printers\Session printers
+#	Fix output of Server Settings\Health Monitoring and Recovery\Health monitoring tests
+#	Force the -verbose common parameter to be $True if running PoSH V3 and later
+#	General code cleanup
+#	If cover page selected does not exist, abort script
+#	If cover page selected does not exist, abort script
+#	If running Word 2007 and the Save As PDF option is selected then verify the Save As PDF add-in is installed.  Abort script if not installed.
+#	In the Server section, change Published Application to a Table
+#	Load Balancing Policies: fixed display of "Apply to connections made through Access Gateway" and "Configure application connection preference based on worker group"
+#	Only process WMI hardware information if the server is online
+#	Strongly type all possible variables
+#	Verify Get-HotFix cmdlet worked.  If not, write error & suggestion to document
+#	Verify Word object is created.  If not, write error & suggestion to document and abort script
+
+#Version 3 script
+#update February 12, 2013 to create a Word 2007/2010/2013 document
+#	Add more write-verbose statements
+#	Added in the missing Load evaluator settings for Load Throttling and Server User Load 
+#	Created a table for Citrix installed hotfixes
+#	Created a table for Microsoft hotfixes
+#	Disable Spell and Grammer Check to resolve issue and improve performance (from Pat Coughlin)
+#	Fixed issues found by running in set-strictmode -version 2.0
+#	Fixed typos
+#	Move table of Citrix services to align with text above table
+#	Test for CompanyName in two different registry locations
+#	Test if template DOTX file loads properly.  If not, skip Cover Page and Table of Contents
+#	Test XenApp server for availability before getting services and hotfixes
+#Updated March 14, 2013
+#	?{?_.SessionId -eq $SessionID} should have been ?{$_.SessionId -eq $SessionID} in the CheckWordPrereq function
+#Updated March 15, 2013
+#	Include updated hotfix lists from CTX129229
+#Updated April 23, 2013
+#	Added two more write-verbose lines
+#	Fixed a compatibility issue with the way the Word file was saved and Set-StrictMode -Version 2
+#	Removed the Logon Control line from the Server section since Logon Control only applies to XenApp 6.5
+#Updated May 4, 2013
+#	Include updated hotfix lists from CTX129229
+#Updated June 7, 2013
+#	Added a few more Write-Verbose statements
+#	Citrix services that are Stopped will now show in a Red cell with bold, black text
+#	Fixed the content of and the detail contained in the Table of Contents
+#	Recommended hotfixes that are Not Installed will now show in a Red cell with bold, black text
+#Updated July 1, 2013
+#	Include updated hotfix lists from CTX129229
+#Updated July 3, 2013
+#	Added -EA 0 to the Load Balancing Policy cmdlets
+#	Added skipping blank Descriptions for:
+#	Health Monitoring and Recovery Tests in Computer Policies
+#	Load Balancing Policies
+#	Load Evaluators
+#	Worker Groups
+
+#Version 2 script
+#update January 16, 2013: 
+#	Added Function make sure the Citrix.GroupPolicy.Commands module is loaded if it exists on the server
+#	Fixed processing of policy filters
+#	Fixed missing policy entries for:
+#		Client USB device redirection rules
+#		Flash server-side content fetching whitelist
+#		Memory optimization exclusion list
+#		Offline app users
+#		Printer driver mapping and compatibility
+#		Users who can shadow other users
+#		Users who cannot shadow other users
+#		Virtual IP compatibility programs list
+#		Virtual IP filter adapter addresses programs list
+#		Virtual IP virtual loopback programs list
+#	Policies are now sorted by Type and Priority
+#update January 17, 2013:
+#	added by @andyjmorgan, changed text output when the citrix.grouppolicy.commands module does not exist
+#	added by @andyjmorgan, checking for required Citrix PoSH snap-ins
+#	updated Function Check-LoadedModule with an improvement suggested by @andyjmorgan
+
+#Version 1 script
+#originally released to the Citrix community on September 30, 2011
+#update October 4, 2011: fixed numerous typos
+#update October 9, 2011: fixed the formatting of the Health Monitoring & Recovery policy setting

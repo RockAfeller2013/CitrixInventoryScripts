@@ -1,0 +1,11 @@
+#Original Script created June, 2014 by Sam Jacobs
+#StoreFront inventory
+#Sam.Jacobs@ipm.com
+ 
+#The Webster PS Framework
+#webster@carlwebster.com
+#@carlwebster on Twitter
+#http://www.CarlWebster.com
+ 
+#Version 1.0 script
+#originally released to the community on July 23, 2015

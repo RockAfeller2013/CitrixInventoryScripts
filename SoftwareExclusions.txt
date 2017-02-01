@@ -1,0 +1,38 @@
+*32-bit Components*
+*64-bit Components*
+*(English)*
+*(French)*
+*(Spanish)*
+*AnswerWorks*
+*Service Pack*
+AppSense*
+Apple*
+Citrix*
+Definition Update*
+Hotfix*
+Intel*
+Java*
+Machine Management WMI Provider*
+Machine Identity Service Agent*
+Microsoft .NET*
+Microsoft Application Virtualization*
+Microsoft Office Access MUI*
+Microsoft Silverlight*
+Microsoft SQL Server * Browser
+Microsoft SQL Server * Common Files
+Microsoft SQL Server * Database Engine Services
+Microsoft SQL Server * Database Engine Shared
+Microsoft SQL Server * RsFx Driver
+Microsoft SQL Server * Setup Support Files
+Microsoft SQL Server VSS Writer
+Microsoft Visual C++*
+MSXML*
+NVIDIA*
+Realtek*
+Runtime*
+Security Update*
+Update*
+User Profile Hive Cleanup Service
+VdaMonitorPlugin*
+VMWare*
+XenApp*

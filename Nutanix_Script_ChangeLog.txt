@@ -1,0 +1,27 @@
+#Original Script created by Kees Baggerman and optimized by Iain Brighton. 
+#All Word related PowerShell functionality has been provided by Carl Webster
+#To contact, please use e-mail address kbaggerman@myvirtualvision.com
+
+#Version 1.0 script
+#originally released to the community on January 28, 2015
+
+This version of the script will gather and format the following information:
+
+
+
+Cluster Overview
+
+Licensing
+
+Node Information
+
+Storage Pool(s)
+
+Containers
+
+vDisks
+
+VMs
+
+Protection Domain(s)
+
